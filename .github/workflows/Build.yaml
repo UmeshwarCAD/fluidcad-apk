@@ -18,13 +18,14 @@ jobs:
           npm ci
           npm install @capacitor/cli @capacitor/core @capacitor/android
 
-      - name: Build UI
+      - name: Build Website
         run: |
           npm run build
-          # FluidCAD viewer UI is in ui/dist - check
-          ls -la ui/dist || ls -la website/build || ls -la dist
-          # init capacitor - THIS fixes your error
-          npx cap init FluidCAD io.fluidcad.offline --web-dir=ui/dist --npm-client npm
+          ls website/build
+
+      - name: Init Capacitor
+        run: |
+          npx cap init FluidCAD io.fluidcad.offline --web-dir=website/build
           npx cap add android
           npx cap copy android
 
