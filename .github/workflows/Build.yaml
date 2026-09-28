@@ -1,0 +1,39 @@
+name: Build FluidCAD APK
+
+on: [workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: Fluid-CAD/FluidCAD
+          
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          
+      - name: Install and Build
+        run: |
+          npm install
+          npm run build
+          npx @capacitor/cli add android || npm install @capacitor/cli @capacitor/core && npx cap add android
+          npm install @capacitor/android
+          npx cap copy android
+          
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          
+      - name: Build APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+          
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fluidcad-offline-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
