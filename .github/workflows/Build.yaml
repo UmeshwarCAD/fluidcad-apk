@@ -1,5 +1,4 @@
 name: Build FluidCAD APK
-
 on: [workflow_dispatch]
 
 jobs:
@@ -9,30 +8,37 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: Fluid-CAD/FluidCAD
-          
+
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          
-      - name: Install and Build
+
+      - name: Install Deps
         run: |
-          npm install
+          npm ci
+          npm install @capacitor/cli @capacitor/core @capacitor/android
+
+      - name: Build UI
+        run: |
           npm run build
-          npx @capacitor/cli add android || npm install @capacitor/cli @capacitor/core && npx cap add android
-          npm install @capacitor/android
+          # FluidCAD viewer UI is in ui/dist - check
+          ls -la ui/dist || ls -la website/build || ls -la dist
+          # init capacitor - THIS fixes your error
+          npx cap init FluidCAD io.fluidcad.offline --web-dir=ui/dist --npm-client npm
+          npx cap add android
           npx cap copy android
-          
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
-          
+
       - name: Build APK
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug
-          
+          ./gradlew assembleDebug --no-daemon
+
       - uses: actions/upload-artifact@v4
         with:
           name: fluidcad-offline-apk
